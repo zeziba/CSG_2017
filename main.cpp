@@ -252,7 +252,7 @@ void setupSDCARD()
   if (!SD.begin(CS, MOSI, MISO, SCK))
     Serial.println("Failed to start SD card.");
 }
-0
+
 void go()
 {
   wHeading = beacon - 180;
