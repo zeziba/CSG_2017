@@ -56,7 +56,7 @@ double lastSend; // Varialbe to indicate last sent bytes
 
 float lastRead, lastWriteRead; // Time for getting data from the compass
 unsigned long compassError;
-int mps = 100; // Max RPM of 55-65 or this will now work, mps is the measure per sec
+int mps = 100; // Max RPM of 55-65 or this will not work, mps is the measure per sec
 long rpm_t;
 double rpm_m;
 boolean rpm_s;
@@ -66,17 +66,24 @@ boolean rpm_s;
 uint8_t payload[12];
 int payload_size = 4;
 
+// Struct used as a data storage device
+union{
+    float f;
+    uint8_t b[4];
+}heading_converter; // Current heading
+
+bool debug = true;
+
 
 void setup() {
     // put your setup code here, to run once:
     delay(1000);
-    Serial.begin(9600);
+    if (debug)
+        Serial.begin(9600);
 
     Serial.println(F("Initializing sub-systems"));
 
-    // This switch sets the beacon to the correct hz for readings
-    // TODO: Clean the switch up so it better matches a readable value
-    if (cont)
+    if (cont) // cont is a value set in the compass, it indicates if continuous mode is used
         set_hz(hz);
 
     lcd.begin(20, 4);
@@ -151,7 +158,7 @@ void loop() {
         lcd.setCursor(0,2);
         lcd.print((String)F("RPM: ") + RPM + F(" HZ: ") + (RPM / 60));
         lcd.setCursor(0,3);
-        lcd.print((String)F("Paylod: ") + (String)payload[0] + (String)payload[1] + (String)payload[2] + (String)payload[3]);
+        lcd.print((String)F("Payload: ") + (String)payload[0] + (String)payload[1] + (String)payload[2] + (String)payload[3]);
         lastRun = millis();
         lastWriteRead = heading_converter.f;
 
