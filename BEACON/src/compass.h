@@ -5,28 +5,29 @@
 
 #ifndef CSG_2017_COMPASS_H
 
-void set_hz(int hz) {
-    switch(hz)
+void set_hz(double hz) {
+    // TODO: Clean the switch up so it better matches a readable value
+    switch((int)(hz * 100))
     {
-        case 75:
+        case 7500:
             rate = DATARATE_75HZ;
             break;
-        case 30:
+        case 3000:
             rate = DATARATE_30HZ;
             break;
-        case 15:
+        case 1500:
             rate = DATARATE_15HZ;
             break;
-        case 57:
+        case 750:
             rate = DATARATE_7_5HZ;
             break;
-        case 3:
+        case 300:
             rate = DATARATE_3HZ;
             break;
-        case 51:
+        case 150:
             rate = DATARATE_1_5HZ;
             break;
-        case 750:
+        case 75:
             rate = DATARATE_0_75_HZ;
             break;
         default:
@@ -118,6 +119,60 @@ void getVector () {
         reading += 360;
     heading_converter.f = reading;    // return the heading or bearing
 }
+
+void calibration()
+{
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(F("Starting Calibration."));
+    int x, y, z;
+    int minX = 0;
+    int maxX = 0;
+    int minY = 0;
+    int maxY = 0;
+    int offX = 0;
+    int offY = 0;
+
+    for (int i = 0; i < calibration_cycles; i++)
+    {
+        //   // step 1: instruct sensor to read echoes
+        // Wire.beginTransmission(Mag);  // transmit to device
+        // // the address specified in the datasheet is 66 (0x42)
+        // // but i2c adressing uses the high 7 bits so it's 33
+        // Wire.write(0x03);          // command sensor to measure angle
+        // Wire.endTransmission();  // stop transmitting
+
+        // The above code is not required when in continuous mode as the sensor only updates at its predefined rate
+
+        // step 3: request reading from sensor
+        Wire.requestFrom(Mag, 6);
+        if(6 <= Wire.available())     // if two bytes were received
+        {
+            x = Wire.read()<<8; //X msb
+            x |= Wire.read(); //X lsb
+            z = Wire.read()<<8; //Z msb
+            z |= Wire.read(); //Z lsb
+            y = Wire.read()<<8; //Y msb/
+            y |= Wire.read(); //Y lsb
+        }
+
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+
+        offX = (maxX + minX) / 2;
+        offY = (maxY + minY) / 2;
+        delay(1000 / mps);
+    }
+
+    xoff = offX;
+    yoff = offY;
+
+    lcd.clear();
+    lcd.print(F("Finished Calibration"));
+}
+
 
 
 #define CSG_2017_COMPASS_H
